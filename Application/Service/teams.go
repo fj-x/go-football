@@ -8,8 +8,8 @@ import (
 	"log"
 )
 
-// get teams list from db if empty call request and populate db
-func GetTeams(league string) []team.Team {
+// get teams list from db if empty - call request and populate db
+func GetTeams(league string) []*team.Team {
 	db := infrastructure.MakeMySql()
 	repository := repository.New(db)
 
@@ -17,10 +17,10 @@ func GetTeams(league string) []team.Team {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if result != nil {
+	if len(result) == 0 {
 		teams := callApi(league)
 		for _, item := range teams {
-			repository.Add(&item)
+			repository.Add(item)
 		}
 
 		return teams
@@ -29,24 +29,27 @@ func GetTeams(league string) []team.Team {
 	return result
 }
 
-func callApi(league string) []team.Team {
+func callApi(league string) []*team.Team {
 	client := footballdataapi.NewClient()
 	result, err := client.GetMatchesList(league)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	var teams []team.Team
+	teams := make([]*team.Team, 0)
+
 	for _, match := range result.Matches {
 
-		teams = append(teams,
-			team.Team{
-				Id:   match.HomeTeam.Id,
-				Name: match.HomeTeam.Name,
-			}, team.Team{
-				Id:   match.AwayTeam.Id,
-				Name: match.AwayTeam.Name,
-			})
+		item1 := new(team.Team)
+		item2 := new(team.Team)
+
+		item1.RemoteId = match.HomeTeam.Id
+		item1.Name = match.HomeTeam.Name
+
+		item2.RemoteId = match.AwayTeam.Id
+		item2.Name = match.AwayTeam.Name
+
+		teams = append(teams, item1, item2)
 	}
 
 	return teams
