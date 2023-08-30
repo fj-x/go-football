@@ -16,6 +16,8 @@ var in = bufio.NewReader(os.Stdin)
 
 func main() {
 
+	// serviceOp.Subscribe(1, 42)
+	// serviceOp.GetTeams("PL")
 	// loop:
 	// 	for {
 	// 		fmt.Println("Select command")

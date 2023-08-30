@@ -22,4 +22,5 @@ go.work
 
 .env
 
-.vscode
+.vscode/
+.mysql-data/

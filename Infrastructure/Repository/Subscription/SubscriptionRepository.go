@@ -31,7 +31,7 @@ func (rcv *subscriptionRepository) FindByUser(userId int32) ([]*subscription.Sub
 	return rcv.rowsToModel(rows)
 }
 
-func (rcv *subscriptionRepository) Add(item *subscription.Subscription) (int64, error) {
+func (rcv *subscriptionRepository) Add(item *subscription.Subscription) (*subscription.Subscription, error) {
 	query := fmt.Sprintf("INSERT INTO `%s` (`userId`, `teamId`) VALUES (?, ?)", TableName)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.UserId, item.TeamId)
 	if err != nil {
@@ -42,7 +42,9 @@ func (rcv *subscriptionRepository) Add(item *subscription.Subscription) (int64, 
 		log.Fatalf("impossible to retrieve last inserted id: %s", err)
 	}
 
-	return id, nil
+	item.Id = int32(id)
+
+	return item, nil
 }
 
 func (rcv *subscriptionRepository) rowsToModel(rows *sql.Rows) ([]*subscription.Subscription, error) {

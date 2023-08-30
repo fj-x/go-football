@@ -33,7 +33,7 @@ func (rcv *userRepository) FindAll() ([]*user.User, error) {
 	return rcv.rowsToModel(rows)
 }
 
-func (rcv *userRepository) Add(item *user.User) (int64, error) {
+func (rcv *userRepository) Add(item *user.User) (*user.User, error) {
 	query := fmt.Sprintf("INSERT INTO `%s` (`name`) VALUES (?)", TableName)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name)
 	if err != nil {
@@ -43,8 +43,9 @@ func (rcv *userRepository) Add(item *user.User) (int64, error) {
 	if err != nil {
 		log.Fatalf("impossible to retrieve last inserted id: %s", err)
 	}
+	item.Id = int32(id)
 
-	return id, nil
+	return item, nil
 }
 
 func (rcv *userRepository) rowsToModel(rows *sql.Rows) ([]*user.User, error) {

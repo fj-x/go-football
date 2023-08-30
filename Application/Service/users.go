@@ -1,18 +1,19 @@
 package service
 
 import (
-	team "go-football/Domain/Team"
+	user "go-football/Domain/User"
 	infrastructure "go-football/Infrastructure"
-	repository "go-football/Infrastructure/Repository"
+	repository "go-football/Infrastructure/Repository/User"
 	"log"
 )
 
-// get teams list from db if empty - call request and populate db
-func Subscribe(userId, teamId int32) []*team.Team {
+func CreateUser(userName string) *user.User {
 	db := infrastructure.MakeMySql()
 	repository := repository.New(db)
 
-	result, err := repository.FindAll()
+	user := user.User{Name: userName}
+
+	result, err := repository.Add(&user)
 	if err != nil {
 		log.Fatalln(err)
 	}

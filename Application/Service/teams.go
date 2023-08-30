@@ -3,7 +3,7 @@ package service
 import (
 	team "go-football/Domain/Team"
 	infrastructure "go-football/Infrastructure"
-	repository "go-football/Infrastructure/Repository"
+	repository "go-football/Infrastructure/Repository/Team"
 	footballdataapi "go-football/Infrastructure/Service/footballDataApi"
 	"log"
 )
