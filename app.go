@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"fmt"
+	serviceOp "go-football/src/Application/Service"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -16,7 +18,13 @@ var in = bufio.NewReader(os.Stdin)
 
 func main() {
 
-	// serviceOp.Subscribe(1, 42)
+	// ntf := serviceOp.GetTeams("PL")
+	// ntf := serviceOp.CreateUser("MyUser")
+	// ntf := serviceOp.SubscribeOnTeam(1, 3)
+	// ntf := serviceOp.SubscribeOnNotification(1, "START_EVENT")
+
+	ntf := serviceOp.GetNotificationTypeList()
+	fmt.Println(ntf)
 	// serviceOp.GetTeams("PL")
 	// loop:
 	// 	for {
