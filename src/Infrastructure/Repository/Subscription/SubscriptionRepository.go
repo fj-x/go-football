@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	subscription "go-football/Domain/Subscription"
+	subscription "go-football/src/Domain/Subscription"
 	"log"
 )
 

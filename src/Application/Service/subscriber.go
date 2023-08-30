@@ -1,9 +1,9 @@
 package service
 
 import (
-	subscription "go-football/Domain/Subscription"
-	infrastructure "go-football/Infrastructure"
-	repository "go-football/Infrastructure/Repository/Subscription"
+	subscription "go-football/src/Domain/Subscription"
+	infrastructure "go-football/src/Infrastructure"
+	repository "go-football/src/Infrastructure/Repository/Subscription"
 	"log"
 )
 

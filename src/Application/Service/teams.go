@@ -1,10 +1,10 @@
 package service
 
 import (
-	team "go-football/Domain/Team"
-	infrastructure "go-football/Infrastructure"
-	repository "go-football/Infrastructure/Repository/Team"
-	footballdataapi "go-football/Infrastructure/Service/footballDataApi"
+	team "go-football/src/Domain/Team"
+	infrastructure "go-football/src/Infrastructure"
+	repository "go-football/src/Infrastructure/Repository/Team"
+	footballdataapi "go-football/src/Infrastructure/Service/footballDataApi"
 	"log"
 )
 

@@ -1,9 +1,9 @@
 package service
 
 import (
-	user "go-football/Domain/User"
-	infrastructure "go-football/Infrastructure"
-	repository "go-football/Infrastructure/Repository/User"
+	user "go-football/src/Domain/User"
+	infrastructure "go-football/src/Infrastructure"
+	repository "go-football/src/Infrastructure/Repository/User"
 	"log"
 )
 

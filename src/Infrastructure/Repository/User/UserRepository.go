@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	user "go-football/Domain/User"
+	user "go-football/src/Domain/User"
 	"log"
 )
 
