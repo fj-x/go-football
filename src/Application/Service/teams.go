@@ -9,7 +9,7 @@ import (
 )
 
 // get teams list from db if empty - call request and populate db
-func GetTeams(league string) []*team.Team {
+func GetTeams() []*team.Team {
 	db := infrastructure.MakeMySql()
 	repository := repository.New(db)
 
@@ -18,7 +18,7 @@ func GetTeams(league string) []*team.Team {
 		log.Fatalln(err)
 	}
 	if len(result) == 0 {
-		teams := callApi(league)
+		teams := callApi()
 		for _, item := range teams {
 			repository.Add(item)
 		}
@@ -29,9 +29,9 @@ func GetTeams(league string) []*team.Team {
 	return result
 }
 
-func callApi(league string) []*team.Team {
+func callApi() []*team.Team {
 	client := footballdataapi.NewClient()
-	result, err := client.GetMatchesList(league)
+	result, err := client.GetMatchesList()
 	if err != nil {
 		log.Fatalln(err)
 	}

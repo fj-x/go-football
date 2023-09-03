@@ -19,21 +19,48 @@ type Match struct {
 	Competition Competition `json:"competition"`
 	Season      Season      `json:"season"`
 	Id          int32       `json:"id"`
-	UtcDate     string      `json:"utcDate"`
+	StartDate   string      `json:"utcDate"`
 	Status      string      `json:"status"`
 	Group       string      `json:"group"`
 	HomeTeam    Team        `json:"homeTeam"`
 	AwayTeam    Team        `json:"awayTeam"`
+	Goals       []Goal      `json:"goals"`
 }
 
-func (rcv *httpClient) GetMatchesList(league string) (*MatchesList, error) {
-	response, err := rcv.Get("competitions/" + league + "/matches?matchday=1")
+func (rcv *httpClient) GetMatchesList() (*MatchesList, error) {
+	response, err := rcv.Get("competitions/PL/matches?matchday=1")
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 
 	result := &MatchesList{}
+
+	switch response.StatusCode {
+	case http.StatusOK:
+		if err = json.NewDecoder(response.Body).Decode(&result); err != nil {
+			fmt.Println("eRRRR")
+			fmt.Println(err)
+			return nil, err
+		}
+
+		return result, nil
+	case http.StatusNotFound:
+		return result, nil
+	default:
+	}
+
+	return nil, errors.New(fmt.Sprintf("Unexpected status code: %d", response.StatusCode))
+}
+
+func (rcv *httpClient) FetchMatchInfo(matchId int32) (*Match, error) {
+	response, err := rcv.Get("competitions/matches/" + string(matchId))
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	result := &Match{}
 
 	switch response.StatusCode {
 	case http.StatusOK:

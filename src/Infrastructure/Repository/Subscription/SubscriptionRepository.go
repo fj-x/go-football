@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	subscription "go-football/src/Domain/Subscription"
+	footballdataapi "go-football/src/Infrastructure/Service/footballDataApi"
 	"log"
 )
 
@@ -18,6 +19,67 @@ type subscriptionRepository struct {
 
 func New(db *sql.DB) *subscriptionRepository {
 	return &subscriptionRepository{db: db}
+}
+
+func (rcv *subscriptionRepository) FindAll() ([]*subscription.Subscription, error) {
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", TableName))
+	if err != nil {
+		fmt.Printf("FindByUser repository %+v\n", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	return rcv.rowsToModel(rows)
+}
+
+func (rcv *subscriptionRepository) FindUnqueSubscribedTeams() ([]int32, error) {
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT `team_id` FROM `%s`", TableName))
+	if err != nil {
+		fmt.Printf("FindByUser repository %+v\n", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var values []int32
+	for rows.Next() {
+		var teamId int32
+
+		// read the row on the table, and assign them to the variable declared above
+		err := rows.Scan(&teamId)
+		if err != nil {
+			return nil, err
+		}
+
+		// appending the row data to the slice
+		values = append(values, teamId)
+	}
+
+	return values, nil
+}
+
+func (rcv *subscriptionRepository) FindMatchSubscribers(match footballdataapi.Match) ([]int32, error) {
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT `user_id` FROM `%s` WHERE `team_id = ? OR `team_id = ?`", TableName), match.HomeTeam.Id, match.AwayTeam.Id)
+	if err != nil {
+		fmt.Printf("FindByUser repository %+v\n", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var values []int32
+	for rows.Next() {
+		var teamId int32
+
+		// read the row on the table, and assign them to the variable declared above
+		err := rows.Scan(&teamId)
+		if err != nil {
+			return nil, err
+		}
+
+		// appending the row data to the slice
+		values = append(values, teamId)
+	}
+
+	return values, nil
 }
 
 func (rcv *subscriptionRepository) FindByUser(userId int32) ([]*subscription.Subscription, error) {

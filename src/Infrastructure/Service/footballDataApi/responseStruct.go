@@ -33,3 +33,14 @@ type Competition struct {
 	Type   string `json:"type"`
 	Emblem string `json:"emblem"`
 }
+
+type Goal struct {
+	Minute int16  `json:"minute"`
+	Team   Team   `json:"team"`
+	Scorer string `json:"scorer"`
+}
+
+type Footballer struct {
+	Id   int32  `json:"id"`
+	Name string `json:"name"`
+}
