@@ -29,6 +29,26 @@ func GetTeams() []*team.Team {
 	return result
 }
 
+func GetMyTeams(userId int32) []*team.Team {
+	db := infrastructure.MakeMySql()
+	repository := repository.New(db)
+
+	result, err := repository.FindAll()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if len(result) == 0 {
+		teams := callApi()
+		for _, item := range teams {
+			repository.Add(item)
+		}
+
+		return teams
+	}
+
+	return result
+}
+
 func callApi() []*team.Team {
 	client := footballdataapi.NewClient()
 	result, err := client.GetMatchesList()

@@ -109,6 +109,22 @@ func (rcv *subscriptionRepository) Add(item *subscription.Subscription) (*subscr
 	return item, nil
 }
 
+func (rcv *subscriptionRepository) Delete(item *subscription.Subscription) error {
+	stmt, err := rcv.db.Prepare(fmt.Sprintf("DELETE FROM `%s` WHERE `userId` = ? AND `teamId = ?", TableName))
+
+	if err != nil {
+		return err
+	}
+
+	if _, err := stmt.Exec(item.UserId, item.TeamId); err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	return nil
+}
+
 func (rcv *subscriptionRepository) rowsToModel(rows *sql.Rows) ([]*subscription.Subscription, error) {
 	items := make([]*subscription.Subscription, 0)
 

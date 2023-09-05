@@ -22,6 +22,18 @@ func SubscribeOnTeam(userId, teamId int32) *subscription.Subscription {
 	return result
 }
 
+func UnubscribeFromTeam(userId, teamId int32) {
+	db := infrastructure.MakeMySql()
+	repository := repository.New(db)
+
+	subscription := subscription.Subscription{UserId: userId, TeamId: teamId}
+
+	err := repository.Delete(&subscription)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
 func GetUserSubscriptions(userId int32) []*subscription.Subscription {
 	db := infrastructure.MakeMySql()
 	repository := repository.New(db)

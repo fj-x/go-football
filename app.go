@@ -2,8 +2,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
-	serviceOp "go-football/src/Application/Service"
+	"go-football/src/Infrastructure/Service/telegram"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -18,13 +17,19 @@ var in = bufio.NewReader(os.Stdin)
 
 func main() {
 
+	// Initialise scheduler
+	// serviceOp.StartMatchScheduler()
+
+	// Run actions
+	telegram.Actions()
+
 	// ntf := serviceOp.GetTeams("PL")
 	// ntf := serviceOp.CreateUser("MyUser")
 	// ntf := serviceOp.SubscribeOnTeam(1, 3)
 	// ntf := serviceOp.SubscribeOnNotification(1, "START_EVENT")
 
-	ntf := serviceOp.GetNotificationTypeList()
-	fmt.Println(ntf)
+	// ntf := serviceOp.GetNotificationTypeList()
+	// fmt.Println(ntf)
 	// serviceOp.GetTeams("PL")
 	// loop:
 	// 	for {
