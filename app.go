@@ -23,7 +23,7 @@ func main() {
 	// Run actions
 	telegram.Actions()
 
-	// ntf := serviceOp.GetTeams("PL")
+	//serviceOp.GetTeams()
 	// ntf := serviceOp.CreateUser("MyUser")
 	// ntf := serviceOp.SubscribeOnTeam(1, 3)
 	// ntf := serviceOp.SubscribeOnNotification(1, "START_EVENT")

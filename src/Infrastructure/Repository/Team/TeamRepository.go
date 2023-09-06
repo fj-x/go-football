@@ -33,6 +33,20 @@ func (rcv *teamRepository) FindAll() ([]*team.Team, error) {
 	return rcv.rowsToModel(rows)
 }
 
+func (rcv *teamRepository) FindUsersTeams(userId int32) ([]*team.Team, error) {
+	query := "SELECT t.id, t.name, t.remoteId FROM `%s` t JOIN `subscription` s ON t.id = s.teamId AND s.userId = ?"
+	rows, err := rcv.db.Query(fmt.Sprintf(query, TableName), userId)
+
+	if err != nil {
+		fmt.Printf("FindAll repository %+v\n", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	return rcv.rowsToModel(rows)
+}
+
 func (rcv *teamRepository) Add(item *team.Team) (int64, error) {
 	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?, ?)", TableName)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name, item.RemoteId)

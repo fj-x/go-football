@@ -33,9 +33,37 @@ func (rcv *userRepository) FindAll() ([]*user.User, error) {
 	return rcv.rowsToModel(rows)
 }
 
+func (rcv *userRepository) IsUserExist(userId int32) (bool, error) {
+	var exist bool
+	err := rcv.db.QueryRow(fmt.Sprintf("SELECT exists (SELECT id FROM `%s` where `remoteId` = ?)", TableName), userId).Scan(&exist)
+	if err != nil {
+		fmt.Printf("FindAll repository %+v\n", err)
+		return false, err
+	}
+
+	fmt.Println(exist)
+	return exist, nil
+}
+
+func (rcv *userRepository) GetUser(remoteId int32) (*user.User, error) {
+	user := new(user.User)
+
+	row := rcv.db.QueryRow(fmt.Sprintf("SELECT id, name, remoteId FROM `%s` where `remoteId` = ?", TableName), remoteId)
+
+	if err := row.Scan(
+		&user.Id,
+		&user.Name,
+		&user.RemoteId,
+	); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (rcv *userRepository) Add(item *user.User) (*user.User, error) {
-	query := fmt.Sprintf("INSERT INTO `%s` (`name`) VALUES (?)", TableName)
-	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name)
+	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?,?)", TableName)
+	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name, item.RemoteId)
 	if err != nil {
 		log.Fatalf("impossible insert: %s", err)
 	}

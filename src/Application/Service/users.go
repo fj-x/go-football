@@ -7,11 +7,16 @@ import (
 	"log"
 )
 
-func CreateUser(userName string) *user.User {
+func CreateUser(userName string, remoteId int32) *user.User {
 	db := infrastructure.MakeMySql()
 	repository := repository.New(db)
 
-	user := user.User{Name: userName}
+	userExist, _ := repository.IsUserExist(remoteId)
+
+	user := user.User{Name: userName, RemoteId: remoteId}
+	if true == userExist {
+		return &user
+	}
 
 	result, err := repository.Add(&user)
 	if err != nil {
@@ -19,4 +24,11 @@ func CreateUser(userName string) *user.User {
 	}
 
 	return result
+}
+
+func GetUser(remoteId int32) (*user.User, error) {
+	db := infrastructure.MakeMySql()
+	repository := repository.New(db)
+
+	return repository.GetUser(remoteId)
 }
