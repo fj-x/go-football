@@ -2,7 +2,8 @@ package main
 
 import (
 	"bufio"
-	"go-football/src/Infrastructure/Service/telegram"
+	// "go-football/src/Infrastructure/Service/telegram"
+	serviceOp "go-football/src/Application/Service"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -18,10 +19,10 @@ var in = bufio.NewReader(os.Stdin)
 func main() {
 
 	// Initialise scheduler
-	// serviceOp.StartMatchScheduler()
+	serviceOp.StartMatchScheduler()
 
 	// Run actions
-	telegram.Actions()
+	// telegram.Actions()
 
 	//serviceOp.GetTeams()
 	// ntf := serviceOp.CreateUser("MyUser")

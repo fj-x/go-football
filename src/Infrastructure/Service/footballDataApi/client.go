@@ -8,19 +8,31 @@ import (
 
 const baseUrl = "https://api.football-data.org/v4/"
 
+// const baseUrl = "http://demo6280197.mockable.io"
+
 type httpClient struct {
-	client http.Client
+	client  http.Client
+	baseUrl string
 }
 
 // Create new api client.
 func NewClient() *httpClient {
 	return &httpClient{
-		client: http.Client{},
+		client:  http.Client{},
+		baseUrl: "https://api.football-data.org/v4/",
+	}
+}
+
+// Create new api client.
+func NewClientMock() *httpClient {
+	return &httpClient{
+		client:  http.Client{},
+		baseUrl: "http://demo6280197.mockable.io/",
 	}
 }
 
 func (c *httpClient) Get(url string) (resp *http.Response, err error) {
-	req, err := http.NewRequest("GET", baseUrl+url, nil)
+	req, err := http.NewRequest("GET", c.baseUrl+url, nil)
 	if err != nil {
 		return nil, err
 
@@ -30,7 +42,7 @@ func (c *httpClient) Get(url string) (resp *http.Response, err error) {
 }
 
 func (c *httpClient) Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
-	req, err := http.NewRequest("POST", baseUrl+url, body)
+	req, err := http.NewRequest("POST", c.baseUrl+url, body)
 	if err != nil {
 		return nil, err
 

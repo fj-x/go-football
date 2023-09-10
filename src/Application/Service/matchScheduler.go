@@ -8,16 +8,17 @@ import (
 	"time"
 
 	"log"
-
-	"github.com/robfig/cron/v3"
+	// "github.com/robfig/cron/v3"
 )
 
 var monitoringList []int32
 
 func StartMatchScheduler() {
-	c := cron.New()
-	c.AddFunc("00 00 * * *", shceduleMatches)
-	c.Start()
+	// c := cron.New()
+	// c.AddFunc("00 00 * * *", shceduleMatches)
+	// c.Start()
+
+	shceduleMatches()
 }
 
 func shceduleMatches() {
@@ -29,7 +30,7 @@ func shceduleMatches() {
 		log.Fatalln(err)
 	}
 
-	// call api
+	// call api to get all matches
 	client := footballdataapi.NewClient()
 	nextMatches, err := client.GetMatchesList()
 	if err != nil {
@@ -39,13 +40,14 @@ func shceduleMatches() {
 	for _, match := range nextMatches.Matches {
 		if inSlice(match.HomeTeam.Id, monitoringList) || inSlice(match.AwayTeam.Id, monitoringList) {
 			// run goroutine
-			go monitorLiveMatch(match)
+			// go monitorLiveMatch(match)
+			monitorLiveMatch(match)
 		}
 	}
 }
 
 func monitorLiveMatch(match footballdataapi.Match) {
-	date, error := time.Parse("2023-09-01T19:00:00Z", match.StartDate)
+	date, error := time.Parse("2006-01-02T15:04:05Z", match.StartDate)
 	if error != nil {
 		fmt.Println(error)
 		return
@@ -57,16 +59,19 @@ func monitorLiveMatch(match footballdataapi.Match) {
 	// Wait for the timer to expire
 	<-timer.C
 
-	var goals map[int32][]footballdataapi.Goal
+	var goalsMap = make(map[int32][]footballdataapi.Goal)
 
+	client := footballdataapi.NewClientMock()
 	// Continue monitoring the match
 	for {
 		// Fetch match information from the API
 		// call api
-		client := footballdataapi.NewClient()
+
 		matchInfo, err := client.FetchMatchInfo(match.Id)
-		if err != nil {
+		if err != nil || matchInfo == nil {
 			// Handle error
+			fmt.Println(err, "fuuuuuu")
+			return
 		}
 
 		// Check if the match has ended
@@ -75,9 +80,10 @@ func monitorLiveMatch(match footballdataapi.Match) {
 			return
 		}
 
-		newGoals := findSliceDifferences(matchInfo.Goals, goals[matchInfo.Id])
+		newGoals := findSliceDifferences(matchInfo.Goals, goalsMap[matchInfo.Id])
+
 		for _, newGoal := range newGoals {
-			goals[matchInfo.Id] = append(goals[matchInfo.Id], newGoal)
+			goalsMap[matchInfo.Id] = append(goalsMap[matchInfo.Id], newGoal)
 			notify(newGoal, match)
 		}
 

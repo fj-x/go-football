@@ -33,7 +33,7 @@ func (rcv *subscriptionRepository) FindAll() ([]*subscription.Subscription, erro
 }
 
 func (rcv *subscriptionRepository) FindUnqueSubscribedTeams() ([]int32, error) {
-	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT `team_id` FROM `%s`", TableName))
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT t.`remoteId` FROM `%s` s JOIN `team` t ON s.teamId = t.id ", TableName))
 	if err != nil {
 		fmt.Printf("FindByUser repository %+v\n", err)
 		return nil, err
@@ -58,7 +58,7 @@ func (rcv *subscriptionRepository) FindUnqueSubscribedTeams() ([]int32, error) {
 }
 
 func (rcv *subscriptionRepository) FindMatchSubscribers(match footballdataapi.Match) ([]int32, error) {
-	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT `user_id` FROM `%s` WHERE `team_id = ? OR `team_id = ?`", TableName), match.HomeTeam.Id, match.AwayTeam.Id)
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT `userId` FROM `%s` WHERE `teamId` IN (SELECT `id` FROM `team` WHERE `remoteId` IN (?, ?))", TableName), match.HomeTeam.Id, match.AwayTeam.Id)
 	if err != nil {
 		fmt.Printf("FindByUser repository %+v\n", err)
 		return nil, err

@@ -35,12 +35,18 @@ type Competition struct {
 }
 
 type Goal struct {
-	Minute int16  `json:"minute"`
-	Team   Team   `json:"team"`
-	Scorer string `json:"scorer"`
+	Minute int16      `json:"minute"`
+	Team   Team       `json:"team"`
+	Scorer Footballer `json:"scorer"`
+	Score  Score      `json:"score"`
 }
 
 type Footballer struct {
 	Id   int32  `json:"id"`
 	Name string `json:"name"`
+}
+
+type Score struct {
+	Home int16 `json:"home"`
+	Away int16 `json:"away"`
 }
