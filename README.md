@@ -16,3 +16,11 @@ Setup a schedule for starting live match monitoring goroutines at given times fo
 
 Each live match monitoring goroutine should check if a score has been changed and notify all subsribed users.
 If API returns that match ended - we should exit from goroutine.
+
+
+next steps:
+1. interface
+2. service loading
+3. error handling
+4. channels, waitgroup, mutex
+5. test

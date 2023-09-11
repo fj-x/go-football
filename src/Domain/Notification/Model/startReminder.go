@@ -1,4 +1,4 @@
-package notification
+package model
 
 type StartReminder struct {
 	Id         int32

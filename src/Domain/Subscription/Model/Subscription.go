@@ -1,6 +1,6 @@
-package subscription
+package model
 
-import notification "go-football/src/Domain/Notification"
+import notification "go-football/src/Domain/Notification/Model"
 
 type Subscription struct {
 	Id           int32

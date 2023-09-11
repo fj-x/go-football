@@ -1,24 +1,28 @@
 package service
 
 import (
-	user "go-football/src/Domain/User"
-	infrastructure "go-football/src/Infrastructure"
-	repository "go-football/src/Infrastructure/Repository/User"
+	user "go-football/src/Domain/User/Model"
+	repository "go-football/src/Domain/User/Repository"
 	"log"
 )
 
-func CreateUser(userName string, remoteId int32) *user.User {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
+type UserService struct {
+	repository repository.UserRepositoryInterface
+}
 
-	userExist, _ := repository.IsUserExist(remoteId)
+func NewUserService(repository repository.UserRepositoryInterface) *UserService {
+	return &UserService{repository: repository}
+}
+
+func (svc UserService) CreateUser(userName string, remoteId int32) *user.User {
+	userExist, _ := svc.repository.IsUserExist(remoteId)
 
 	user := user.User{Name: userName, RemoteId: remoteId}
 	if true == userExist {
 		return &user
 	}
 
-	result, err := repository.Add(&user)
+	result, err := svc.repository.Add(&user)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -26,9 +30,6 @@ func CreateUser(userName string, remoteId int32) *user.User {
 	return result
 }
 
-func GetUser(remoteId int32) (*user.User, error) {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
-
-	return repository.GetUser(remoteId)
+func (svc UserService) GetUser(remoteId int32) (*user.User, error) {
+	return svc.repository.GetUser(remoteId)
 }

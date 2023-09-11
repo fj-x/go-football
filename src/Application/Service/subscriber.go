@@ -1,20 +1,28 @@
 package service
 
 import (
-	subscription "go-football/src/Domain/Subscription"
-	infrastructure "go-football/src/Infrastructure"
-	notification_repository "go-football/src/Infrastructure/Repository/Notification"
-	repository "go-football/src/Infrastructure/Repository/Subscription"
+	notification_repository "go-football/src/Domain/Notification/Repository"
+	subscription "go-football/src/Domain/Subscription/Model"
+	repository "go-football/src/Domain/Subscription/Repository"
 	"log"
 )
 
-func SubscribeOnTeam(userId, teamId int32) *subscription.Subscription {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
+type SubscriptionService struct {
+	repository             repository.SubscriptionRepositoryInterface
+	notificationRepository notification_repository.NotificationRepositoryInterface
+}
 
+func NewSubscriptionService(
+	repository repository.SubscriptionRepositoryInterface,
+	notificationRepository notification_repository.NotificationRepositoryInterface,
+) *SubscriptionService {
+	return &SubscriptionService{repository: repository, notificationRepository: notificationRepository}
+}
+
+func (svc SubscriptionService) SubscribeOnTeam(userId, teamId int32) *subscription.Subscription {
 	subscription := subscription.Subscription{UserId: userId, TeamId: teamId}
 
-	result, err := repository.Add(&subscription)
+	result, err := svc.repository.Add(&subscription)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -22,30 +30,23 @@ func SubscribeOnTeam(userId, teamId int32) *subscription.Subscription {
 	return result
 }
 
-func UnubscribeFromTeam(userId, teamId int32) {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
-
+func (svc SubscriptionService) UnubscribeFromTeam(userId, teamId int32) {
 	subscription := subscription.Subscription{UserId: userId, TeamId: teamId}
 
-	err := repository.Delete(&subscription)
+	err := svc.repository.Delete(&subscription)
 	if err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func GetUserSubscriptions(userId int32) []*subscription.Subscription {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
-	notification_repository := notification_repository.New(db)
-
-	result, err := repository.FindByUser(userId)
+func (svc SubscriptionService) GetUserSubscriptions(userId int32) []*subscription.Subscription {
+	result, err := svc.repository.FindByUser(userId)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	for _, item := range result {
-		item.Notification, _ = notification_repository.FindBySubscription(item.Id)
+		item.Notification, _ = svc.notificationRepository.FindBySubscription(item.Id)
 	}
 
 	return result

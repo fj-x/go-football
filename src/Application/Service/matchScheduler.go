@@ -96,7 +96,7 @@ func notify(goal footballdataapi.Goal, match footballdataapi.Match) {
 	db := infrastructure.MakeMySql()
 	repository := repository.New(db)
 
-	subscribers, err := repository.FindMatchSubscribers(match)
+	subscribers, err := repository.FindMatchSubscribers(match.HomeTeam.Id, match.AwayTeam.Id)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -1,23 +1,27 @@
 package service
 
 import (
-	notification "go-football/src/Domain/Notification"
-	infrastructure "go-football/src/Infrastructure"
-	repository "go-football/src/Infrastructure/Repository/Notification"
+	notification "go-football/src/Domain/Notification/Model"
+	repository "go-football/src/Domain/Notification/Repository"
 	"log"
 )
 
-func GetNotificationTypeList() notification.NotificationTypes {
+type NotificationService struct {
+	repository repository.NotificationRepositoryInterface
+}
+
+func NewNotificationService(repository repository.NotificationRepositoryInterface) *NotificationService {
+	return &NotificationService{repository: repository}
+}
+
+func (svc NotificationService) GetNotificationTypeList() notification.NotificationTypes {
 	return notification.GetNotificationTypes()
 }
 
-func SubscribeOnNotification(subscriptionId int32, notificationType string) *notification.Notification {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
-
+func (svc *NotificationService) SubscribeOnNotification(subscriptionId int32, notificationType string) *notification.Notification {
 	notification := notification.Notification{SubscriptionId: subscriptionId, Type: notificationType}
 
-	result, err := repository.Add(&notification)
+	result, err := svc.repository.Add(&notification)
 	if err != nil {
 		log.Fatalln(err)
 	}

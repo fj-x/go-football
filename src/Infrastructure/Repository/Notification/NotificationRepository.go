@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	notification "go-football/src/Domain/Notification"
+	notification "go-football/src/Domain/Notification/Model"
 	"log"
 )
 
@@ -12,15 +12,15 @@ var (
 	TableName = "notification"
 )
 
-type notificationRepository struct {
+type NotificationRepository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *notificationRepository {
-	return &notificationRepository{db: db}
+func New(db *sql.DB) *NotificationRepository {
+	return &NotificationRepository{db: db}
 }
 
-func (rcv *notificationRepository) FindBySubscription(subscriptionId int32) ([]*notification.Notification, error) {
+func (rcv *NotificationRepository) FindBySubscription(subscriptionId int32) ([]*notification.Notification, error) {
 	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s` WHERE `subscriptionId`= ?", TableName), subscriptionId)
 	if err != nil {
 		fmt.Printf("FindByUser repository %+v\n", err)
@@ -31,7 +31,7 @@ func (rcv *notificationRepository) FindBySubscription(subscriptionId int32) ([]*
 	return rcv.rowsToModel(rows)
 }
 
-func (rcv *notificationRepository) Add(item *notification.Notification) (*notification.Notification, error) {
+func (rcv *NotificationRepository) Add(item *notification.Notification) (*notification.Notification, error) {
 	query := fmt.Sprintf("INSERT INTO `%s` (`subscriptionId`, `type`) VALUES (?, ?)", TableName)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.SubscriptionId, item.Type)
 	if err != nil {
@@ -47,7 +47,7 @@ func (rcv *notificationRepository) Add(item *notification.Notification) (*notifi
 	return item, nil
 }
 
-func (rcv *notificationRepository) rowsToModel(rows *sql.Rows) ([]*notification.Notification, error) {
+func (rcv *NotificationRepository) rowsToModel(rows *sql.Rows) ([]*notification.Notification, error) {
 	items := make([]*notification.Notification, 0)
 
 	for rows.Next() {

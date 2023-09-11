@@ -1,26 +1,30 @@
 package service
 
 import (
-	team "go-football/src/Domain/Team"
-	infrastructure "go-football/src/Infrastructure"
-	repository "go-football/src/Infrastructure/Repository/Team"
+	team "go-football/src/Domain/Team/Model"
+	repository "go-football/src/Domain/Team/Repository"
 	footballdataapi "go-football/src/Infrastructure/Service/footballDataApi"
 	"log"
 )
 
-// get teams list from db if empty - call request and populate db
-func GetTeams() []*team.Team {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
+type TeamService struct {
+	repository repository.TeamRepositoryInterface
+}
 
-	result, err := repository.FindAll()
+func NewTeamService(repository repository.TeamRepositoryInterface) *TeamService {
+	return &TeamService{repository: repository}
+}
+
+// get teams list from db if empty - call request and populate db
+func (svc TeamService) GetTeams() []*team.Team {
+	result, err := svc.repository.FindAll()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	if len(result) == 0 {
 		teams := callApi()
 		for _, item := range teams {
-			repository.Add(item)
+			svc.repository.Add(item)
 		}
 
 		return teams
@@ -29,11 +33,8 @@ func GetTeams() []*team.Team {
 	return result
 }
 
-func GetMyTeams(userId int32) []*team.Team {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
-
-	result, err := repository.FindUsersTeams(userId)
+func (svc TeamService) GetMyTeams(userId int32) []*team.Team {
+	result, err := svc.repository.FindUsersTeams(userId)
 	if err != nil {
 		log.Fatalln(err)
 	}

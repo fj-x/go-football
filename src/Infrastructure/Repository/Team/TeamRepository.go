@@ -4,7 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	team "go-football/src/Domain/Team"
+	team "go-football/src/Domain/Team/Model"
+	subscription_repository "go-football/src/Infrastructure/Repository/Subscription"
 	"log"
 )
 
@@ -12,15 +13,15 @@ var (
 	TableName = "team"
 )
 
-type teamRepository struct {
+type TeamRepository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *teamRepository {
-	return &teamRepository{db: db}
+func New(db *sql.DB) *TeamRepository {
+	return &TeamRepository{db: db}
 }
 
-func (rcv *teamRepository) FindAll() ([]*team.Team, error) {
+func (rcv *TeamRepository) FindAll() ([]*team.Team, error) {
 	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", TableName))
 
 	if err != nil {
@@ -33,9 +34,9 @@ func (rcv *teamRepository) FindAll() ([]*team.Team, error) {
 	return rcv.rowsToModel(rows)
 }
 
-func (rcv *teamRepository) FindUsersTeams(userId int32) ([]*team.Team, error) {
-	query := "SELECT t.id, t.name, t.remoteId FROM `%s` t JOIN `subscription` s ON t.id = s.teamId AND s.userId = ?"
-	rows, err := rcv.db.Query(fmt.Sprintf(query, TableName), userId)
+func (rcv *TeamRepository) FindUsersTeams(userId int32) ([]*team.Team, error) {
+	query := "SELECT t.id, t.name, t.remoteId FROM `%s` t JOIN `%s` s ON t.id = s.teamId AND s.userId = ?"
+	rows, err := rcv.db.Query(fmt.Sprintf(query, TableName, subscription_repository.TableName), userId)
 
 	if err != nil {
 		fmt.Printf("FindAll repository %+v\n", err)
@@ -47,7 +48,7 @@ func (rcv *teamRepository) FindUsersTeams(userId int32) ([]*team.Team, error) {
 	return rcv.rowsToModel(rows)
 }
 
-func (rcv *teamRepository) Add(item *team.Team) (int64, error) {
+func (rcv *TeamRepository) Add(item *team.Team) (int64, error) {
 	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?, ?)", TableName)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name, item.RemoteId)
 	if err != nil {
@@ -61,7 +62,7 @@ func (rcv *teamRepository) Add(item *team.Team) (int64, error) {
 	return id, nil
 }
 
-func (rcv *teamRepository) rowsToModel(rows *sql.Rows) ([]*team.Team, error) {
+func (rcv *TeamRepository) rowsToModel(rows *sql.Rows) ([]*team.Team, error) {
 	items := make([]*team.Team, 0)
 
 	for rows.Next() {

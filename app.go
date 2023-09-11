@@ -4,6 +4,12 @@ import (
 	"bufio"
 	// "go-football/src/Infrastructure/Service/telegram"
 	serviceOp "go-football/src/Application/Service"
+	infrastructure "go-football/src/Infrastructure"
+	notification_repository "go-football/src/Infrastructure/Repository/Notification"
+	subscription_repository "go-football/src/Infrastructure/Repository/Subscription"
+	team_repository "go-football/src/Infrastructure/Repository/Team"
+	user_repository "go-football/src/Infrastructure/Repository/User"
+
 	"os"
 
 	"github.com/joho/godotenv"
@@ -17,6 +23,21 @@ func init() {
 var in = bufio.NewReader(os.Stdin)
 
 func main() {
+
+	// init db
+	db := infrastructure.MakeMySql()
+
+	// init repositories
+	notificationRepository := notification_repository.New(db)
+	subscriptionRepository := subscription_repository.New(db)
+	userRepository := user_repository.New(db)
+	teamRepository := team_repository.New(db)
+
+	// init services
+	serviceOp.NewUserService(userRepository)
+	serviceOp.NewTeamService(teamRepository)
+	serviceOp.NewNotificationService(notificationRepository)
+	serviceOp.NewSubscriptionService(subscriptionRepository, notificationRepository)
 
 	// Initialise scheduler
 	serviceOp.StartMatchScheduler()

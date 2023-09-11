@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	subscription "go-football/src/Domain/Subscription"
-	footballdataapi "go-football/src/Infrastructure/Service/footballDataApi"
+	subscription "go-football/src/Domain/Subscription/Model"
+	notification_repository "go-football/src/Infrastructure/Repository/Notification"
 	"log"
 )
 
@@ -13,15 +13,15 @@ var (
 	TableName = "subscription"
 )
 
-type subscriptionRepository struct {
+type SubscriptionRepository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *subscriptionRepository {
-	return &subscriptionRepository{db: db}
+func New(db *sql.DB) *SubscriptionRepository {
+	return &SubscriptionRepository{db: db}
 }
 
-func (rcv *subscriptionRepository) FindAll() ([]*subscription.Subscription, error) {
+func (rcv *SubscriptionRepository) FindAll() ([]*subscription.Subscription, error) {
 	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", TableName))
 	if err != nil {
 		fmt.Printf("FindByUser repository %+v\n", err)
@@ -32,8 +32,8 @@ func (rcv *subscriptionRepository) FindAll() ([]*subscription.Subscription, erro
 	return rcv.rowsToModel(rows)
 }
 
-func (rcv *subscriptionRepository) FindUnqueSubscribedTeams() ([]int32, error) {
-	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT t.`remoteId` FROM `%s` s JOIN `team` t ON s.teamId = t.id ", TableName))
+func (rcv *SubscriptionRepository) FindUnqueSubscribedTeams() ([]int32, error) {
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT t.`remoteId` FROM `%s` s JOIN `%s` t ON s.teamId = t.id ", TableName, notification_repository.TableName))
 	if err != nil {
 		fmt.Printf("FindByUser repository %+v\n", err)
 		return nil, err
@@ -57,8 +57,8 @@ func (rcv *subscriptionRepository) FindUnqueSubscribedTeams() ([]int32, error) {
 	return values, nil
 }
 
-func (rcv *subscriptionRepository) FindMatchSubscribers(match footballdataapi.Match) ([]int32, error) {
-	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT `userId` FROM `%s` WHERE `teamId` IN (SELECT `id` FROM `team` WHERE `remoteId` IN (?, ?))", TableName), match.HomeTeam.Id, match.AwayTeam.Id)
+func (rcv *SubscriptionRepository) FindMatchSubscribers(homeTeam, awayTeam int32) ([]int32, error) {
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT DISTINCT `userId` FROM `%s` WHERE `teamId` IN (SELECT `id` FROM `%s` WHERE `remoteId` IN (?, ?))", TableName, notification_repository.TableName), homeTeam, awayTeam)
 	if err != nil {
 		fmt.Printf("FindByUser repository %+v\n", err)
 		return nil, err
@@ -82,7 +82,7 @@ func (rcv *subscriptionRepository) FindMatchSubscribers(match footballdataapi.Ma
 	return values, nil
 }
 
-func (rcv *subscriptionRepository) FindByUser(userId int32) ([]*subscription.Subscription, error) {
+func (rcv *SubscriptionRepository) FindByUser(userId int32) ([]*subscription.Subscription, error) {
 	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s` WHERE `userId`= ?", TableName), userId)
 	if err != nil {
 		fmt.Printf("FindByUser repository %+v\n", err)
@@ -93,7 +93,7 @@ func (rcv *subscriptionRepository) FindByUser(userId int32) ([]*subscription.Sub
 	return rcv.rowsToModel(rows)
 }
 
-func (rcv *subscriptionRepository) Add(item *subscription.Subscription) (*subscription.Subscription, error) {
+func (rcv *SubscriptionRepository) Add(item *subscription.Subscription) (*subscription.Subscription, error) {
 	query := fmt.Sprintf("INSERT INTO `%s` (`userId`, `teamId`) VALUES (?, ?)", TableName)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.UserId, item.TeamId)
 	if err != nil {
@@ -109,7 +109,7 @@ func (rcv *subscriptionRepository) Add(item *subscription.Subscription) (*subscr
 	return item, nil
 }
 
-func (rcv *subscriptionRepository) Delete(item *subscription.Subscription) error {
+func (rcv *SubscriptionRepository) Delete(item *subscription.Subscription) error {
 	stmt, err := rcv.db.Prepare(fmt.Sprintf("DELETE FROM `%s` WHERE `userId` = ? AND `teamId = ?", TableName))
 
 	if err != nil {
@@ -125,7 +125,7 @@ func (rcv *subscriptionRepository) Delete(item *subscription.Subscription) error
 	return nil
 }
 
-func (rcv *subscriptionRepository) rowsToModel(rows *sql.Rows) ([]*subscription.Subscription, error) {
+func (rcv *SubscriptionRepository) rowsToModel(rows *sql.Rows) ([]*subscription.Subscription, error) {
 	items := make([]*subscription.Subscription, 0)
 
 	for rows.Next() {

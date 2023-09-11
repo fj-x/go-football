@@ -1,4 +1,4 @@
-package notification
+package model
 
 const (
 	LiveEventType  = "LIVE_EVENT"

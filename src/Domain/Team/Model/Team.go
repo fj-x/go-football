@@ -1,4 +1,4 @@
-package team
+package model
 
 type Team struct {
 	Id       int32

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	user "go-football/src/Domain/User"
+	user "go-football/src/Domain/User/Model"
 	"log"
 )
 
@@ -12,15 +12,15 @@ var (
 	TableName = "user"
 )
 
-type userRepository struct {
+type UserRepository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *userRepository {
-	return &userRepository{db: db}
+func New(db *sql.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
-func (rcv *userRepository) FindAll() ([]*user.User, error) {
+func (rcv *UserRepository) FindAll() ([]*user.User, error) {
 	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", TableName))
 
 	if err != nil {
@@ -33,7 +33,7 @@ func (rcv *userRepository) FindAll() ([]*user.User, error) {
 	return rcv.rowsToModel(rows)
 }
 
-func (rcv *userRepository) IsUserExist(userId int32) (bool, error) {
+func (rcv *UserRepository) IsUserExist(userId int32) (bool, error) {
 	var exist bool
 	err := rcv.db.QueryRow(fmt.Sprintf("SELECT exists (SELECT id FROM `%s` where `remoteId` = ?)", TableName), userId).Scan(&exist)
 	if err != nil {
@@ -45,7 +45,7 @@ func (rcv *userRepository) IsUserExist(userId int32) (bool, error) {
 	return exist, nil
 }
 
-func (rcv *userRepository) GetUser(remoteId int32) (*user.User, error) {
+func (rcv *UserRepository) GetUser(remoteId int32) (*user.User, error) {
 	user := new(user.User)
 
 	row := rcv.db.QueryRow(fmt.Sprintf("SELECT id, name, remoteId FROM `%s` where `remoteId` = ?", TableName), remoteId)
@@ -61,7 +61,7 @@ func (rcv *userRepository) GetUser(remoteId int32) (*user.User, error) {
 	return user, nil
 }
 
-func (rcv *userRepository) Add(item *user.User) (*user.User, error) {
+func (rcv *UserRepository) Add(item *user.User) (*user.User, error) {
 	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?,?)", TableName)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name, item.RemoteId)
 	if err != nil {
@@ -76,7 +76,7 @@ func (rcv *userRepository) Add(item *user.User) (*user.User, error) {
 	return item, nil
 }
 
-func (rcv *userRepository) rowsToModel(rows *sql.Rows) ([]*user.User, error) {
+func (rcv *UserRepository) rowsToModel(rows *sql.Rows) ([]*user.User, error) {
 	items := make([]*user.User, 0)
 
 	for rows.Next() {
