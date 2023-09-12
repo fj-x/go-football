@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
-	infrastructure "go-football/src/Infrastructure"
-	repository "go-football/src/Infrastructure/Repository/Subscription"
+	repository "go-football/src/Domain/Subscription/Repository"
+
 	footballdataapi "go-football/src/Infrastructure/Service/footballDataApi"
 	"time"
 
@@ -11,21 +11,28 @@ import (
 	// "github.com/robfig/cron/v3"
 )
 
+type MatchSchedulerService struct {
+	repository repository.SubscriptionRepositoryInterface
+}
+
+func NewSchedulerService(
+	repository repository.SubscriptionRepositoryInterface,
+) *MatchSchedulerService {
+	return &MatchSchedulerService{repository: repository}
+}
+
 var monitoringList []int32
 
-func StartMatchScheduler() {
+func (svc MatchSchedulerService) StartMatchScheduler() {
 	// c := cron.New()
 	// c.AddFunc("00 00 * * *", shceduleMatches)
 	// c.Start()
 
-	shceduleMatches()
+	svc.shceduleMatches()
 }
 
-func shceduleMatches() {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
-
-	monitoringList, err := repository.FindUnqueSubscribedTeams()
+func (svc MatchSchedulerService) shceduleMatches() {
+	monitoringList, err := svc.repository.FindUnqueSubscribedTeams()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -41,12 +48,12 @@ func shceduleMatches() {
 		if inSlice(match.HomeTeam.Id, monitoringList) || inSlice(match.AwayTeam.Id, monitoringList) {
 			// run goroutine
 			// go monitorLiveMatch(match)
-			monitorLiveMatch(match)
+			svc.monitorLiveMatch(match)
 		}
 	}
 }
 
-func monitorLiveMatch(match footballdataapi.Match) {
+func (svc MatchSchedulerService) monitorLiveMatch(match footballdataapi.Match) {
 	date, error := time.Parse("2006-01-02T15:04:05Z", match.StartDate)
 	if error != nil {
 		fmt.Println(error)
@@ -84,7 +91,7 @@ func monitorLiveMatch(match footballdataapi.Match) {
 
 		for _, newGoal := range newGoals {
 			goalsMap[matchInfo.Id] = append(goalsMap[matchInfo.Id], newGoal)
-			notify(newGoal, match)
+			svc.notify(newGoal, match)
 		}
 
 		// Sleep for a minute before checking again
@@ -92,11 +99,8 @@ func monitorLiveMatch(match footballdataapi.Match) {
 	}
 }
 
-func notify(goal footballdataapi.Goal, match footballdataapi.Match) {
-	db := infrastructure.MakeMySql()
-	repository := repository.New(db)
-
-	subscribers, err := repository.FindMatchSubscribers(match.HomeTeam.Id, match.AwayTeam.Id)
+func (svc MatchSchedulerService) notify(goal footballdataapi.Goal, match footballdataapi.Match) {
+	subscribers, err := svc.repository.FindMatchSubscribers(match.HomeTeam.Id, match.AwayTeam.Id)
 	if err != nil {
 		log.Fatalln(err)
 	}

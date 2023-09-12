@@ -5,12 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	team "go-football/src/Domain/Team/Model"
-	subscription_repository "go-football/src/Infrastructure/Repository/Subscription"
+	infrastructure "go-football/src/Infrastructure"
 	"log"
-)
-
-var (
-	TableName = "team"
 )
 
 type TeamRepository struct {
@@ -22,7 +18,7 @@ func New(db *sql.DB) *TeamRepository {
 }
 
 func (rcv *TeamRepository) FindAll() ([]*team.Team, error) {
-	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", TableName))
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", infrastructure.TeamTable))
 
 	if err != nil {
 		fmt.Printf("FindAll repository %+v\n", err)
@@ -36,7 +32,7 @@ func (rcv *TeamRepository) FindAll() ([]*team.Team, error) {
 
 func (rcv *TeamRepository) FindUsersTeams(userId int32) ([]*team.Team, error) {
 	query := "SELECT t.id, t.name, t.remoteId FROM `%s` t JOIN `%s` s ON t.id = s.teamId AND s.userId = ?"
-	rows, err := rcv.db.Query(fmt.Sprintf(query, TableName, subscription_repository.TableName), userId)
+	rows, err := rcv.db.Query(fmt.Sprintf(query, infrastructure.TeamTable, infrastructure.SubscriptionTable), userId)
 
 	if err != nil {
 		fmt.Printf("FindAll repository %+v\n", err)
@@ -49,7 +45,7 @@ func (rcv *TeamRepository) FindUsersTeams(userId int32) ([]*team.Team, error) {
 }
 
 func (rcv *TeamRepository) Add(item *team.Team) (int64, error) {
-	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?, ?)", TableName)
+	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?, ?)", infrastructure.TeamTable)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name, item.RemoteId)
 	if err != nil {
 		log.Fatalf("impossible insert: %s", err)

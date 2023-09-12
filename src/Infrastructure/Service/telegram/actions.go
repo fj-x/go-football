@@ -8,7 +8,28 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Actions() {
+type TelegramActions struct {
+	userService         *serviceOp.UserService
+	teamService         *serviceOp.TeamService
+	subscriptionService *serviceOp.SubscriptionService
+	notificationService *serviceOp.NotificationService
+}
+
+func New(
+	userService *serviceOp.UserService,
+	teamService *serviceOp.TeamService,
+	subscriptionService *serviceOp.SubscriptionService,
+	notificationService *serviceOp.NotificationService,
+) *TelegramActions {
+	return &TelegramActions{
+		userService:         userService,
+		teamService:         teamService,
+		subscriptionService: subscriptionService,
+		notificationService: notificationService,
+	}
+}
+
+func (actions TelegramActions) Actions() {
 	bot := CreateBot()
 	fmt.Println("Bot created")
 
@@ -26,26 +47,26 @@ func Actions() {
 			chatId := update.Message.Chat.ID
 
 			if update.Message.Command() == "start" {
-				saveUser(update.Message.Chat.UserName, chatId)
+				actions.saveUser(update.Message.Chat.UserName, chatId)
 			}
 			if update.Message.Command() == "list" {
-				getAllTeams(bot, chatId)
+				actions.getAllTeams(bot, chatId)
 			}
 			if update.Message.Command() == "myTeams" {
-				getMyTeams(bot, chatId)
+				actions.getMyTeams(bot, chatId)
 			}
 			if update.Message.Command() == "subscribe" {
-				subscribeOnTeam(bot, updates, chatId)
+				actions.subscribeOnTeam(bot, updates, chatId)
 			}
 			if update.Message.Command() == "unsubscribe" {
-				unsubscribeFromTeam(bot, updates, chatId)
+				actions.unsubscribeFromTeam(bot, updates, chatId)
 			}
 		}
 	}
 }
 
-func subscribeOnTeam(bot *TelegramBot, updates tgbotapi.UpdatesChannel, chatId int64) {
-	userId, err := serviceOp.GetUser(int32(chatId))
+func (actions TelegramActions) subscribeOnTeam(bot *TelegramBot, updates tgbotapi.UpdatesChannel, chatId int64) {
+	userId, err := actions.userService.GetUser(int32(chatId))
 	if nil != err {
 		message(bot, chatId, "Wrong user")
 		return
@@ -60,13 +81,13 @@ func subscribeOnTeam(bot *TelegramBot, updates tgbotapi.UpdatesChannel, chatId i
 		teamId, _ = strconv.ParseInt(eventNameUpdate.Message.Text, 10, 64)
 	}
 
-	serviceOp.SubscribeOnTeam(userId.Id, int32(teamId))
+	actions.subscriptionService.SubscribeOnTeam(userId.Id, int32(teamId))
 
 	message(bot, chatId, "Subscribed")
 }
 
-func unsubscribeFromTeam(bot *TelegramBot, updates tgbotapi.UpdatesChannel, chatId int64) {
-	userId, err := serviceOp.GetUser(int32(chatId))
+func (actions TelegramActions) unsubscribeFromTeam(bot *TelegramBot, updates tgbotapi.UpdatesChannel, chatId int64) {
+	userId, err := actions.userService.GetUser(int32(chatId))
 	if nil != err {
 		message(bot, chatId, "Wrong user")
 		return
@@ -81,19 +102,19 @@ func unsubscribeFromTeam(bot *TelegramBot, updates tgbotapi.UpdatesChannel, chat
 		teamId, _ = strconv.ParseInt(eventNameUpdate.Message.Text, 10, 64)
 	}
 
-	serviceOp.UnubscribeFromTeam(userId.Id, int32(teamId))
+	actions.subscriptionService.UnubscribeFromTeam(userId.Id, int32(teamId))
 
 	message(bot, chatId, "Unsubscribed")
 }
 
-func getMyTeams(bot *TelegramBot, chatId int64) {
-	userId, err := serviceOp.GetUser(int32(chatId))
+func (actions TelegramActions) getMyTeams(bot *TelegramBot, chatId int64) {
+	userId, err := actions.userService.GetUser(int32(chatId))
 	if nil != err {
 		message(bot, chatId, "Wrong user")
 		return
 	}
 
-	teams := serviceOp.GetMyTeams(userId.Id)
+	teams := actions.teamService.GetMyTeams(userId.Id)
 	if len(teams) == 0 {
 		message(bot, chatId, "No subscribed teams")
 		return
@@ -109,8 +130,8 @@ func getMyTeams(bot *TelegramBot, chatId int64) {
 	message(bot, chatId, list)
 }
 
-func getAllTeams(bot *TelegramBot, chatId int64) {
-	teams := serviceOp.GetTeams()
+func (actions TelegramActions) getAllTeams(bot *TelegramBot, chatId int64) {
+	teams := actions.teamService.GetTeams()
 	var list string
 	for _, team := range teams {
 		list += strconv.Itoa(int(team.Id)) + " - " + team.Name + "\n"
@@ -125,6 +146,6 @@ func message(bot *TelegramBot, chatId int64, data string) {
 	bot.Bot.Send(tgbotapi.NewMessage(chatId, data))
 }
 
-func saveUser(username string, chatId int64) {
-	serviceOp.CreateUser(username, int32(chatId))
+func (actions TelegramActions) saveUser(username string, chatId int64) {
+	actions.userService.CreateUser(username, int32(chatId))
 }

@@ -8,6 +8,13 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+const (
+	TeamTable         = "team"
+	UserTable         = "user"
+	SubscriptionTable = "subscription"
+	NotificationTable = "notification"
+)
+
 func MakeMySql() *sql.DB {
 	port := os.Getenv("APP_DB_PORT")
 	if port == "" {

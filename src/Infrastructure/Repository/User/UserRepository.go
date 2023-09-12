@@ -5,11 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	user "go-football/src/Domain/User/Model"
+	infrastructure "go-football/src/Infrastructure"
 	"log"
-)
-
-var (
-	TableName = "user"
 )
 
 type UserRepository struct {
@@ -21,7 +18,7 @@ func New(db *sql.DB) *UserRepository {
 }
 
 func (rcv *UserRepository) FindAll() ([]*user.User, error) {
-	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", TableName))
+	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", infrastructure.UserTable))
 
 	if err != nil {
 		fmt.Printf("FindAll repository %+v\n", err)
@@ -35,7 +32,7 @@ func (rcv *UserRepository) FindAll() ([]*user.User, error) {
 
 func (rcv *UserRepository) IsUserExist(userId int32) (bool, error) {
 	var exist bool
-	err := rcv.db.QueryRow(fmt.Sprintf("SELECT exists (SELECT id FROM `%s` where `remoteId` = ?)", TableName), userId).Scan(&exist)
+	err := rcv.db.QueryRow(fmt.Sprintf("SELECT exists (SELECT id FROM `%s` where `remoteId` = ?)", infrastructure.UserTable), userId).Scan(&exist)
 	if err != nil {
 		fmt.Printf("FindAll repository %+v\n", err)
 		return false, err
@@ -48,7 +45,7 @@ func (rcv *UserRepository) IsUserExist(userId int32) (bool, error) {
 func (rcv *UserRepository) GetUser(remoteId int32) (*user.User, error) {
 	user := new(user.User)
 
-	row := rcv.db.QueryRow(fmt.Sprintf("SELECT id, name, remoteId FROM `%s` where `remoteId` = ?", TableName), remoteId)
+	row := rcv.db.QueryRow(fmt.Sprintf("SELECT id, name, remoteId FROM `%s` where `remoteId` = ?", infrastructure.UserTable), remoteId)
 
 	if err := row.Scan(
 		&user.Id,
@@ -62,7 +59,7 @@ func (rcv *UserRepository) GetUser(remoteId int32) (*user.User, error) {
 }
 
 func (rcv *UserRepository) Add(item *user.User) (*user.User, error) {
-	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?,?)", TableName)
+	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?,?)", infrastructure.UserTable)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name, item.RemoteId)
 	if err != nil {
 		log.Fatalf("impossible insert: %s", err)
