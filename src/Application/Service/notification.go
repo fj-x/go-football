@@ -3,7 +3,6 @@ package service
 import (
 	notification "go-football/src/Domain/Notification/Model"
 	repository "go-football/src/Domain/Notification/Repository"
-	"log"
 )
 
 type NotificationService struct {
@@ -18,13 +17,13 @@ func (svc NotificationService) GetNotificationTypeList() notification.Notificati
 	return notification.GetNotificationTypes()
 }
 
-func (svc *NotificationService) SubscribeOnNotification(subscriptionId int32, notificationType string) *notification.Notification {
+func (svc *NotificationService) SubscribeOnNotification(subscriptionId int32, notificationType string) (*notification.Notification, error) {
 	notification := notification.Notification{SubscriptionId: subscriptionId, Type: notificationType}
 
 	result, err := svc.repository.Add(&notification)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }

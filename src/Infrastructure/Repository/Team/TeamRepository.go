@@ -6,7 +6,6 @@ import (
 	"fmt"
 	team "go-football/src/Domain/Team/Model"
 	infrastructure "go-football/src/Infrastructure"
-	"log"
 )
 
 type TeamRepository struct {
@@ -21,7 +20,6 @@ func (rcv *TeamRepository) FindAll() ([]*team.Team, error) {
 	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s`", infrastructure.TeamTable))
 
 	if err != nil {
-		fmt.Printf("FindAll repository %+v\n", err)
 		return nil, err
 	}
 
@@ -35,7 +33,6 @@ func (rcv *TeamRepository) FindUsersTeams(userId int32) ([]*team.Team, error) {
 	rows, err := rcv.db.Query(fmt.Sprintf(query, infrastructure.TeamTable, infrastructure.SubscriptionTable), userId)
 
 	if err != nil {
-		fmt.Printf("FindAll repository %+v\n", err)
 		return nil, err
 	}
 
@@ -48,11 +45,11 @@ func (rcv *TeamRepository) Add(item *team.Team) (int64, error) {
 	query := fmt.Sprintf("INSERT INTO `%s` (`name`, `remoteId`) VALUES (?, ?)", infrastructure.TeamTable)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.Name, item.RemoteId)
 	if err != nil {
-		log.Fatalf("impossible insert: %s", err)
+		return 0, err
 	}
 	id, err := insertResult.LastInsertId()
 	if err != nil {
-		log.Fatalf("impossible to retrieve last inserted id: %s", err)
+		return 0, err
 	}
 
 	return id, nil

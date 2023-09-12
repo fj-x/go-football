@@ -6,7 +6,6 @@ import (
 	"fmt"
 	notification "go-football/src/Domain/Notification/Model"
 	infrastructure "go-football/src/Infrastructure"
-	"log"
 )
 
 type NotificationRepository struct {
@@ -20,7 +19,6 @@ func New(db *sql.DB) *NotificationRepository {
 func (rcv *NotificationRepository) FindBySubscription(subscriptionId int32) ([]*notification.Notification, error) {
 	rows, err := rcv.db.Query(fmt.Sprintf("SELECT * FROM `%s` WHERE `subscriptionId`= ?", infrastructure.NotificationTable), subscriptionId)
 	if err != nil {
-		fmt.Printf("FindByUser repository %+v\n", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -32,11 +30,11 @@ func (rcv *NotificationRepository) Add(item *notification.Notification) (*notifi
 	query := fmt.Sprintf("INSERT INTO `%s` (`subscriptionId`, `type`) VALUES (?, ?)", infrastructure.NotificationTable)
 	insertResult, err := rcv.db.ExecContext(context.Background(), query, item.SubscriptionId, item.Type)
 	if err != nil {
-		log.Fatalf("impossible insert: %s", err)
+		return nil, err
 	}
 	id, err := insertResult.LastInsertId()
 	if err != nil {
-		log.Fatalf("impossible to retrieve last inserted id: %s", err)
+		return nil, err
 	}
 
 	item.Id = int32(id)

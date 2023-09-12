@@ -67,7 +67,7 @@ func (actions TelegramActions) Actions() {
 
 func (actions TelegramActions) subscribeOnTeam(bot *TelegramBot, updates tgbotapi.UpdatesChannel, chatId int64) {
 	userId, err := actions.userService.GetUser(int32(chatId))
-	if nil != err {
+	if err != nil {
 		message(bot, chatId, "Wrong user")
 		return
 	}
@@ -88,7 +88,7 @@ func (actions TelegramActions) subscribeOnTeam(bot *TelegramBot, updates tgbotap
 
 func (actions TelegramActions) unsubscribeFromTeam(bot *TelegramBot, updates tgbotapi.UpdatesChannel, chatId int64) {
 	userId, err := actions.userService.GetUser(int32(chatId))
-	if nil != err {
+	if err != nil {
 		message(bot, chatId, "Wrong user")
 		return
 	}
@@ -109,13 +109,13 @@ func (actions TelegramActions) unsubscribeFromTeam(bot *TelegramBot, updates tgb
 
 func (actions TelegramActions) getMyTeams(bot *TelegramBot, chatId int64) {
 	userId, err := actions.userService.GetUser(int32(chatId))
-	if nil != err {
+	if err != nil {
 		message(bot, chatId, "Wrong user")
 		return
 	}
 
-	teams := actions.teamService.GetMyTeams(userId.Id)
-	if len(teams) == 0 {
+	teams, err := actions.teamService.GetMyTeams(userId.Id)
+	if err != nil || len(teams) == 0 {
 		message(bot, chatId, "No subscribed teams")
 		return
 	}
@@ -131,7 +131,12 @@ func (actions TelegramActions) getMyTeams(bot *TelegramBot, chatId int64) {
 }
 
 func (actions TelegramActions) getAllTeams(bot *TelegramBot, chatId int64) {
-	teams := actions.teamService.GetTeams()
+	teams, err := actions.teamService.GetTeams()
+	if err != nil {
+		message(bot, chatId, "Can't load the team list")
+		return
+	}
+
 	var list string
 	for _, team := range teams {
 		list += strconv.Itoa(int(team.Id)) + " - " + team.Name + "\n"

@@ -3,7 +3,6 @@ package service
 import (
 	user "go-football/src/Domain/User/Model"
 	repository "go-football/src/Domain/User/Repository"
-	"log"
 )
 
 type UserService struct {
@@ -14,20 +13,23 @@ func NewUserService(repository repository.UserRepositoryInterface) *UserService 
 	return &UserService{repository: repository}
 }
 
-func (svc UserService) CreateUser(userName string, remoteId int32) *user.User {
-	userExist, _ := svc.repository.IsUserExist(remoteId)
+func (svc UserService) CreateUser(userName string, remoteId int32) (*user.User, error) {
+	userExist, err := svc.repository.IsUserExist(remoteId)
+	if err != nil {
+		return nil, err
+	}
 
 	user := user.User{Name: userName, RemoteId: remoteId}
 	if true == userExist {
-		return &user
+		return &user, nil
 	}
 
 	result, err := svc.repository.Add(&user)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }
 
 func (svc UserService) GetUser(remoteId int32) (*user.User, error) {

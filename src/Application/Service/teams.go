@@ -16,10 +16,10 @@ func NewTeamService(repository repository.TeamRepositoryInterface) *TeamService 
 }
 
 // get teams list from db if empty - call request and populate db
-func (svc TeamService) GetTeams() []*team.Team {
+func (svc TeamService) GetTeams() ([]*team.Team, error) {
 	result, err := svc.repository.FindAll()
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	if len(result) == 0 {
 		teams := callApi()
@@ -27,19 +27,19 @@ func (svc TeamService) GetTeams() []*team.Team {
 			svc.repository.Add(item)
 		}
 
-		return teams
+		return teams, nil
 	}
 
-	return result
+	return result, nil
 }
 
-func (svc TeamService) GetMyTeams(userId int32) []*team.Team {
+func (svc TeamService) GetMyTeams(userId int32) ([]*team.Team, error) {
 	result, err := svc.repository.FindUsersTeams(userId)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }
 
 func callApi() []*team.Team {
